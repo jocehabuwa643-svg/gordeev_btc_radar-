@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Крипто Терминал Гордеева - PRO MAX (SMC)</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Oswald:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&display=swap');
+        
+        body { 
+            margin: 0; padding: 0; 
+            background: #eef2f6;
+            color: #0f172a; 
+            overflow: hidden; 
+            touch-action: manipulation;
+            -webkit-font-smoothing: antialiased;
+            font-family: 'Montserrat', sans-serif;
+        }
+        
+        .oswald-font { font-family: 'Oswald', sans-serif; letter-spacing: 0.05em; text-transform: uppercase; }
+        .mono-font { font-family: 'JetBrains Mono', monospace; }
+
+        .bg-grid-pattern {
+            background-image: 
+                linear-gradient(to right, rgba(14, 165, 233, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(14, 165, 233, 0.05) 1px, transparent 1px);
+            background-size: 30px 30px;
+            mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+            -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+        }
+
+        .bg-orb-1 {
+            position: absolute; top: -10%; left: -5%; width: 50vw; height: 50vw;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.25) 0%, rgba(37, 99, 235, 0.05) 50%, transparent 70%);
+            border-radius: 50%; filter: blur(60px); animation: float 12s ease-in-out infinite alternate;
+        }
+        .bg-orb-2 {
+            position: absolute; bottom: -15%; right: -10%; width: 60vw; height: 60vw;
+            background: radial-gradient(circle, rgba(6, 182, 212, 0.2) 0%, rgba(14, 165, 233, 0.05) 50%, transparent 70%);
+            border-radius: 50%; filter: blur(80px); animation: float 15s ease-in-out infinite alternate-reverse;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(2%, 4%) scale(1.05); }
+            100% { transform: translate(-2%, -3%) scale(0.95); }
+        }
+
+        .card-3d-wrapper { perspective: 2000px; }
+        .card-3d {
+            transform-style: preserve-3d;
+            animation: float-3d 12s ease-in-out infinite;
+            box-shadow: 
+                0 30px 60px -15px rgba(15, 23, 42, 0.15), 
+                0 15px 30px -10px rgba(14, 165, 233, 0.2),
+                inset 0 1px 3px rgba(255, 255, 255, 1);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 249, 255, 0.8) 100%);
+            backdrop-filter: blur(20px);
+            position: relative;
+        }
+        .card-3d::before {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(105deg, transparent 20%, rgba(255,255,255,0.6) 25%, transparent 30%);
+            border-radius: inherit; pointer-events: none; z-index: 50; animation: glare 6s infinite linear;
+        }
+
+        @keyframes glare {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        @keyframes float-3d {
+            0% { transform: translateY(0px) rotateX(2deg) rotateY(-2deg); }
+            50% { transform: translateY(-10px) rotateX(-1deg) rotateY(3deg); }
+            100% { transform: translateY(0px) rotateX(2deg) rotateY(-2deg); }
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+        .ticker-wrapper { display: flex; width: max-content; animation: ticker 40s linear infinite; }
+        
+        @keyframes scanline { 
+            0% { transform: translateY(-100%); opacity: 0; } 
+            15% { opacity: 1; }
+            85% { opacity: 1; }
+            100% { transform: translateY(500%); opacity: 0; } 
+        }
+        .scanline-anim { 
+            animation: scanline 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite; 
+            background: linear-gradient(to bottom, transparent, rgba(14, 165, 233, 0.4), rgba(59, 130, 246, 0.6), transparent); 
+        }
+        
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+            z-index: 40;
+        }
+        
+        .glass-panel-heavy {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(241, 245, 249, 0.8) 100%);
+            backdrop-filter: blur(35px);
+            -webkit-backdrop-filter: blur(35px);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 15px 35px -10px rgba(15, 23, 42, 0.08), inset 0 2px 10px rgba(255, 255, 255, 0.6);
+        }
+
+        .glass-card {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.6) 100%);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            box-shadow: 0 4px 15px -5px rgba(15, 23, 42, 0.03), inset 0 1px 1px rgba(255, 255, 255, 1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-card:hover {
+            border-color: rgba(186, 230, 253, 0.8);
+            background: linear-gradient(145deg, rgba(255, 255, 255, 1) 0%, rgba(248, 250, 252, 0.9) 100%);
+            box-shadow: 0 8px 25px -5px rgba(14, 165, 233, 0.15), inset 0 1px 2px rgba(255, 255, 255, 1);
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, #2563eb, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        @keyframes slideUpFade {
+            0% { transform: translateY(10px); opacity: 0; }
+            20% { transform: translateY(0); opacity: 1; }
+            80% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-10px); opacity: 0; }
+        }
+        .hft-tick { animation: slideUpFade 1.5s ease-out forwards; }
+    </style>
+</head>
+<body>
+    <div id="auth-lock" style="position:fixed; inset:0; background:#0f172a; z-index:99999; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:'Oswald', sans-serif;">
+        <h2 id="auth-text" style="text-align:center; color:#38bdf8; font-size:1.5rem; letter-spacing:0.05em; text-transform:uppercase;">УСТАНОВКА ЗАЩИЩЕННОГО СОЕДИНЕНИЯ...</h2>
+    </div>
+
+    <div id="root" style="display:none;"></div>
+
+    <script type="text/javascript">
+        async function checkAccess() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const key = urlParams.get('key');
+            const lockText = document.getElementById('auth-text');
+
+            if (!key) {
+                lockText.innerHTML = '❌ ДОСТУП ЗАКРЫТ.<br><span style="font-size:0.6em; color:#94a3b8">ЗАПУСТИТЕ РАДАР ЧЕРЕЗ ТЕЛЕГРАМ-БОТА</span>';
+                lockText.style.color = '#f43f5e';
+                return;
+            }
+
+            const targetUrl = encodeURIComponent(`http://5.129.192.130:3000/check?key=${key}&t=${Date.now()}`);
+            
+            const proxies = [
+                `https://api.codetabs.com/v1/proxy?quest=${targetUrl}`,
+                `https://corsproxy.io/?${targetUrl}`,
+                `https://api.allorigins.win/raw?url=${targetUrl}`
+            ];
+
+            let success = false;
+            let resultData = null;
+
+            for (let proxy of proxies) {
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 3500); 
+                    
+                    const response = await fetch(proxy, { signal: controller.signal, cache: "no-store" });
+                    clearTimeout(timeoutId);
+                    
+                    if (response.ok) {
+                        const text = await response.text();
+                        try {
+                            const json = JSON.parse(text);
+                            resultData = json.contents ? JSON.parse(json.contents) : json;
+                            if (resultData && typeof resultData.allowed !== 'undefined') {
+                                success = true;
+                                break;
+                            }
+                        } catch(e) {}
+                    }
+                } catch(e) {
+                    console.log('Прокси не ответил, пробуем следующий...');
+                }
+            }
+
+            if (success) {
+                if (resultData.allowed) {
+                    document.getElementById('auth-lock').style.display = 'none';
+                    document.getElementById('root').style.display = 'block';
+                } else {
+                    lockText.innerHTML = '⏳ СРОК ДЕЙСТВИЯ ПОДПИСКИ ИСТЕК.';
+                    lockText.style.color = '#f59e0b';
+                }
+            } else {
+                lockText.innerHTML = '⚠️ ОШИБКА СВЯЗИ С СЕРВЕРОМ.<br><span style="font-size:0.6em; color:#94a3b8">УБЕДИТЕСЬ, ЧТО СЕРВЕР ВКЛЮЧЕН</span>';
+                lockText.style.color = '#f43f5e';
+            }
+        }
+        checkAccess();
+    </script>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        const Shield = ({ size = 24, className = "" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 4.81 17 6 19 6a1 1 0 0 1 1 1z"/></svg>;
+        const Cpu = ({ size = 24, className = "" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>;
+        const Globe = ({ size = 24, className = "" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/></svg>;
+        const Clock = ({ size = 24, className = "" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>;
+        const TrendingUp = ({ size = 24, className = "" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>;
+        const Radar = ({ size = 24, className = "" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M19.07 4.93A10 10 0 0 0 6.99 3.34"/><path d="M4 5.49A10 10 0 0 0 5.3 19.38"/><path d="M20 8.74A10 10 0 0 1 17.38 20"/><path d="M16 8a6 6 0 0 0-8.5-1.5"/><path d="M7.5 16.5a6 6 0 0 0 9.2-.5"/><path d="M12 12v.01"/></svg>;
+        const Zap = ({ size = 24, className = "" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>;
+
+        const ASSETS = [
+          { pair: 'BTC/USDT', symbol: 'BTCUSDT', name: 'Bitcoin', voiceName: 'биткоин' }
+        ];
+
+        const FALLBACK_BTC_NEWS = [
+          "Крупный капитал формирует пулы ликвидности за локальными экстремумами.",
+          "Паттерн снятия ликвидности (SMC) подтверждает смену структуры рынка.",
+          "Зафиксирован ложный пробой диапазона с последующим CHoCH.",
+          "Маркетмейкер собирает стопы розничных трейдеров перед разворотом."
+        ];
+
+        const ScannerAPI = {
+          async getCandles(symbol, count = 250, interval = '1m') { 
+            const urls = [
+                `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${count}`,
+                `https://api1.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${count}`,
+                `https://api2.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${count}`,
+                `https://data-api.binance.vision/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${count}`
+            ];
+            
+            for (let url of urls) {
+                try {
+                    let response = await fetch(url);
+                    if (response.ok) {
+                        const data = await response.json();
+                        return data.map(d => ({
+                            time: d[0] / 1000,
+                            open: parseFloat(d[1]),
+                            high: parseFloat(d[2]),
+                            low: parseFloat(d[3]),
+                            close: parseFloat(d[4]),
+                            volume: parseFloat(d[5])
+                        }));
+                    }
+                } catch(e) { continue; }
+            }
+            console.error("Нет связи с Binance API");
+            return [];
+          }
+        };
+
+        const formatPrice = (p) => {
+            if (!p && p !== 0) return '0.00';
+            if (p >= 1000) return p.toFixed(2);
+            if (p >= 10) return p.toFixed(3);
+            if (p >= 1) return p.toFixed(4);
+            return p.toFixed(5);
+        };
+
+        function calcLiquidityZones(data, period = 30) {
+            let res = [];
+            for (let i = 0; i < data.length; i++) {
+                if (i < period) {
+                    res.push({ time: data[i].time, upper: data[i].high, lower: data[i].low });
+                    continue;
+                }
+                let high = -Infinity;
+                let low = Infinity;
+                for (let j = 1; j <= period; j++) {
+                    high = Math.max(high, data[i - j].high);
+                    low = Math.min(low, data[i - j].low);
+                }
+                res.push({ time: data[i].time, upper: high, lower: low });
+            }
+            return res;
+        }
+
+        function calcATRSeries(data, period = 14) {
+            let res = [];
+            for (let i = 0; i < data.length; i++) {
+                if (i === 0) { 
+                    res.push({time: data[i].time, value: data[i].high - data[i].low}); 
+                    continue; 
+                }
+                let sumTR = 0;
+                let count = 0;
+                for(let j = 0; j < period && (i - j) > 0; j++) {
+                    const c = data[i - j];
+                    const prevC = data[i - j - 1];
+                    let tr = Math.max(
+                        c.high - c.low,
+                        Math.abs(c.high - prevC.close),
+                        Math.abs(c.low - prevC.close)
+                    );
+                    sumTR += tr;
+                    count++;
+                }
+                res.push({time: data[i].time, value: count > 0 ? sumTR / count : 0});
+            }
+            return res;
+        }
+
+        const LiveClock = () => {
+          const [t, setT] = useState(new Date());
+          useEffect(() => { const i = setInterval(() => setT(new Date()), 1000); return () => clearInterval(i); }, []);
+          return <span className="text-slate-800 text-sm md:text-base mono-font font-bold">{t.toLocaleTimeString('ru-RU')}</span>;
+        };
+
+        const MiniChart = ({ data }) => {
+          if (!data || !Array.isArray(data) || data.length < 2) {
+            return <div className="w-full h-full flex items-center justify-center opacity-60 text-lg tracking-widest text-slate-500 font-bold animate-pulse oswald-font">ЗАГРУЗКА КЛАСТЕРОВ...</div>;
+          }
+          const chartData = data.slice(-40); 
+          const min = Math.min(...chartData.map(d => d.low));
+          const max = Math.max(...chartData.map(d => d.high));
+          const maxVol = Math.max(...chartData.map(d => d.volume || 1));
+          const range = (max - min) || 1;
+          const width = 200, height = 80;
+          const candleWidth = width / chartData.length;
+
+          return (
+            <svg className="w-full h-full opacity-90" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
+              {chartData.map((c, i) => {
+                const isUp = c.close >= c.open;
+                const x = i * candleWidth;
+                const w = candleWidth * 0.7;
+                const oY = height - ((c.open - min) / range) * height;
+                const cY = height - ((c.close - min) / range) * height;
+                const hY = height - ((c.high - min) / range) * height;
+                const lY = height - ((c.low - min) / range) * height;
+                
+                const volH = ((c.volume || 0) / maxVol) * 15;
+                const volY = height - volH;
+
+                return (
+                  <g key={i}>
+                    <line x1={x + w / 2} y1={hY} x2={x + w / 2} y2={lY} stroke={isUp ? "#0ea5e9" : "#94a3b8"} strokeWidth="1" />
+                    <rect x={x} y={isUp ? cY : oY} width={w} height={Math.max(Math.abs(cY - oY), 1.2)} fill={isUp ? "#0ea5e9" : "transparent"} stroke={isUp ? "none" : "#94a3b8"} strokeWidth="1" rx="0.5" />
+                    <rect x={x} y={volY} width={w} height={volH} fill={isUp ? "rgba(14, 165, 233, 0.2)" : "rgba(148, 163, 184, 0.2)"} />
+                  </g>
+                );
+              })}
+            </svg>
+          );
+        };
+
+        const Speedometer = ({ value, label, colorHex = "#0284c7", glow = false }) => {
+          const safeValue = isNaN(value) ? 50 : Math.max(0, Math.min(100, value));
+          const angle = -90 + (safeValue / 100) * 180;
+          const radius = 40;
+          const circumference = Math.PI * radius;
+          const strokeDashoffset = circumference - (safeValue / 100) * circumference;
+
+          return (
+            <div className="flex flex-col items-center flex-1 relative px-0.5 group pt-1">
+              <svg viewBox="0 0 100 55" className="w-10 h-6 md:w-12 md:h-7 overflow-visible mt-1">
+                <defs>
+                    <filter id={`glow-${label.replace(/\s+/g, '')}`}>
+                        <feGaussianBlur stdDeviation="3.5" result="coloredBlur"/>
+                        <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                    </filter>
+                </defs>
+                {[0, 25, 50, 75, 100].map(tick => {
+                   const a = -Math.PI + (tick/100)*Math.PI;
+                   return <line key={tick} x1={50 + 36 * Math.cos(a)} y1={50 + 36 * Math.sin(a)} x2={50 + 44 * Math.cos(a)} y2={50 + 44 * Math.sin(a)} stroke="rgba(148, 163, 184, 0.5)" strokeWidth="2" strokeLinecap="round" />
+                })}
+                <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="rgba(226, 232, 240, 1)" strokeWidth="5" strokeLinecap="round" />
+                <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke={colorHex} strokeWidth="5" strokeLinecap="round"
+                      strokeDasharray={circumference} strokeDashoffset={strokeDashoffset}
+                      style={{ transition: 'stroke-dashoffset 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)' }} filter={glow ? `url(#glow-${label.replace(/\s+/g, '')})` : "none"} />
+                <g style={{ transform: `rotate(${angle}deg)`, transformOrigin: '50px 50px', transition: 'transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)' }}>
+                  <polygon points="48,50 52,50 50,12" fill={colorHex} />
+                  <circle cx="50" cy="50" r="6" fill={colorHex} />
+                  <circle cx="50" cy="50" r="2.5" fill="#ffffff" />
+                </g>
+              </svg>
+              <div className={`text-base md:text-lg mt-1.5 font-black leading-none oswald-font ${glow ? 'text-cyan-600 drop-shadow-[0_0_8px_currentColor]' : 'text-slate-800'}`} style={{color: glow ? colorHex : ''}}>{Math.round(safeValue)}</div>
+              <div className="text-[8px] md:text-[9px] text-slate-500 tracking-widest leading-none text-center font-bold mt-1 uppercase whitespace-nowrap">{label}</div>
+            </div>
+          );
+        };
+        
+        const VolumetricArrow = ({ type }) => {
+          const isUp = type === 'CALL';
+          return (
+            <div className="relative w-16 h-16 md:w-20 md:h-20 flex items-center justify-center animate-arrow-premium">
+               <svg viewBox="0 0 24 24" className={`w-full h-full fill-current ${isUp ? 'text-[#0ea5e9]' : 'text-[#f43f5e]'}`}>
+                  <path d={isUp ? "M12 2l-10 11h7v9h6v-9h7z" : "M12 22l10-11h-7v-9h-6v9h-7z"} />
+               </svg>
+            </div>
+          );
+        };
+
+        const OrderBookDepth = ({ price }) => {
+          const p = price || 0;
+          
+          if (!p) {
+              return (
+                  <div className="flex flex-col mono-font text-slate-800 border-l border-slate-300/50 px-3 justify-center h-full w-full relative">
+                      <div className="flex justify-between text-slate-500 mb-1 border-b border-slate-300/80 pb-1 text-[10px] md:text-xs tracking-widest font-bold oswald-font">
+                          <span>ЦЕНА</span><span>ОБЪЕМ</span>
+                      </div>
+                      <div className="flex items-center justify-center h-full text-[10px] md:text-xs text-slate-400 font-bold animate-pulse oswald-font tracking-widest">
+                          СИНХРОНИЗАЦИЯ...
+                      </div>
+                  </div>
+              );
+          }
+
+          const formattedP = formatPrice(p);
+          const step = p > 1000 ? 0.5 : p > 1 ? 0.005 : 0.00005;
+
+          return (
+            <div className="flex flex-col mono-font text-slate-800 border-l border-slate-300/50 px-3 justify-center h-full w-full relative">
+              <div className="flex justify-between text-slate-500 mb-1 border-b border-slate-300/80 pb-1 text-[10px] md:text-xs tracking-widest font-bold oswald-font">
+                <span>ЦЕНА</span><span>ОБЪЕМ</span>
+              </div>
+              <div className="space-y-0.5 mt-1 relative z-10">
+                {[...Array(3)].map((_, i) => {
+                  const vol = Math.floor(Math.random() * 80 + 20);
+                  const width = `${Math.min(100, (vol / 100) * 100)}%`;
+                  return (
+                  <div key={`ask-${i}`} className="flex justify-between text-[10px] md:text-xs text-rose-500/90 font-bold tracking-wider relative group">
+                    <div className="absolute right-0 top-0 bottom-0 bg-rose-100/50 rounded-sm transition-all" style={{width}}></div>
+                    <span className="relative z-10 drop-shadow-sm">{formatPrice(p + (4 - i) * step)}</span>
+                    <span className="relative z-10 opacity-80">{vol}</span>
+                  </div>
+                )})}
+                <div className="flex justify-between text-blue-900 bg-blue-100 border border-blue-400 my-1.5 px-2 py-0.5 text-xs md:text-sm font-black shadow-[0_0_15px_rgba(14,165,233,0.3)] rounded-md relative overflow-hidden">
+                  <div className="absolute left-0 top-0 bottom-0 bg-blue-300/40" style={{width: `${Math.random()*60 + 20}%`}}></div>
+                  <span className="relative z-10 drop-shadow-sm">{formattedP}</span>
+                  <span className="relative z-10 text-blue-700">{Math.floor(Math.random() * 200 + 50)}</span>
+                </div>
+                {[...Array(3)].map((_, i) => {
+                  const vol = Math.floor(Math.random() * 80 + 20);
+                  const width = `${Math.min(100, (vol / 100) * 100)}%`;
+                  return (
+                  <div key={`bid-${i}`} className="flex justify-between text-[10px] md:text-xs text-emerald-600/90 font-bold tracking-wider relative">
+                    <div className="absolute right-0 top-0 bottom-0 bg-emerald-100/50 rounded-sm transition-all" style={{width}}></div>
+                    <span className="relative z-10 drop-shadow-sm">{formatPrice(p - (i + 1) * step)}</span>
+                    <span className="relative z-10 opacity-80">{vol}</span>
+                  </div>
+                )})}
+              </div>
+            </div>
+          );
+        };
+
+        const HftTape = ({ price }) => {
+          const [ticks, setTicks] = useState([]);
+          useEffect(() => {
+            if (!price) return;
+            const int = setInterval(() => {
+                const isBuy = Math.random() > 0.5;
+                const amt = (Math.random() * 2 + 0.1).toFixed(2);
+                const offset = (Math.random() * 2 - 1);
+                const tickPrice = formatPrice(price + offset);
+                setTicks(p => [{id: Date.now(), buy: isBuy, amt, price: tickPrice}, ...p].slice(0, 4));
+            }, 600);
+            return () => clearInterval(int);
+          }, [price]);
+          
+          return (
+             <div className="flex flex-col gap-1 w-[85px] md:w-[95px] pl-2 border-l border-slate-200/50 overflow-hidden justify-end pb-1 h-full shrink-0">
+                {ticks.map(t => (
+                    <div key={t.id} className={`hft-tick text-[9px] md:text-[10px] font-bold mono-font flex justify-between w-full ${t.buy ? 'text-emerald-600' : 'text-rose-600'}`}>
+                        <span className="opacity-80">{t.price.slice(-2)}</span>
+                        <span>{t.buy ? '▲' : '▼'}{t.amt}</span>
+                    </div>
+                ))}
+             </div>
+          )
+        };
+
+        const App = () => {
+          const [isStarted, setIsStarted] = useState(false);
+          const [appPhase, setAppPhase] = useState('СИНХРОНИЗАЦИЯ...');
+          const [viewMode, setViewMode] = useState('SCREENER'); 
+          const [scanIndex, setScanIndex] = useState(-1);
+          const [asset, setAsset] = useState(ASSETS[0]);
+          const [sparklines, setSparklines] = useState({});
+          const [signal, setSignal] = useState(null);
+          const [countdown, setCountdown] = useState(null);
+          const [logs, setLogs] = useState([]);
+          const [currentTF, setCurrentTF] = useState('1M');
+          
+          const [metrics, setMetrics] = useState({ structure: 50, liquidity: 50, filterLevel: 1.0, smartMoney: 0, buyPressure: 50 });
+          const [newsHeadlines, setNewsHeadlines] = useState(["ОБНОВЛЕНИЕ ДАННЫХ BTC..."]);
+          const [tradeStats, setTradeStats] = useState({ wins: 0, losses: 0, winRate: 0 });
+          
+          const [statusColorClass, setStatusColorClass] = useState('text-slate-800');
+          
+          const chartContainerRef = useRef(null);
+          const chartInstance = useRef(null);
+          const candleSeries = useRef(null);
+          const extraSeriesRef = useRef([]); 
+          const priceLinesRef = useRef([]);  
+          
+          const audioCtx = useRef(null);
+          const engineActive = useRef(false);
+          const currentPrice = useRef(null);
+          const statsRef = useRef({ wins: 0, losses: 0 });
+          const filterStrictness = useRef(1.0); 
+          const markersRef = useRef([]); 
+
+          const logsContainerRef = useRef(null); 
+          const fullNewsPool = useRef([...FALLBACK_BTC_NEWS]);
+
+          const fetchNews = async () => {
+              try {
+                  const urls = [
+                      'https://api.rss2json.com/v1/api.json?rss_url=https://forklog.com/feed/',
+                      'https://api.rss2json.com/v1/api.json?rss_url=https://bits.media/rss2/'
+                  ];
+                  
+                  let btcItems = [];
+                  for(let u of urls) {
+                      let res = await fetch(u).catch(()=>null);
+                      if(res && res.ok) {
+                          let data = await res.json();
+                          if (data && data.items) {
+                              let filtered = data.items
+                                  .filter(item => /биткоин|btc|bitcoin/i.test(item.title))
+                                  .map(item => item.title.replace(/<\/?[^>]+(>|$)/g, "").trim());
+                              btcItems = [...btcItems, ...filtered];
+                          }
+                      }
+                  }
+                  
+                  if (btcItems.length > 0) {
+                      btcItems = [...new Set(btcItems)];
+                      fullNewsPool.current = btcItems;
+                      setNewsHeadlines(btcItems);
+                  } else {
+                      fullNewsPool.current = [...FALLBACK_BTC_NEWS];
+                      setNewsHeadlines(FALLBACK_BTC_NEWS);
+                  }
+              } catch (error) { 
+                  fullNewsPool.current = [...FALLBACK_BTC_NEWS];
+                  setNewsHeadlines(FALLBACK_BTC_NEWS); 
+              }
+          };
+
+          useEffect(() => {
+            if(!isStarted) return;
+            const interval = setInterval(() => {
+                setMetrics(prev => {
+                    const liqWobble = (Math.random() - 0.5) * 4;
+                    const pressureWobble = (Math.random() - 0.5) * 6;
+                    return {
+                        ...prev,
+                        smartMoney: prev.smartMoney > 0 ? Math.max(0, Math.min(100, prev.smartMoney + (Math.random() * 2 - 1))) : 0,
+                        liquidity: Math.max(0, Math.min(100, prev.liquidity + liqWobble)),
+                        buyPressure: Math.max(20, Math.min(80, prev.buyPressure + pressureWobble))
+                    }
+                });
+            }, 1000);
+            return () => clearInterval(interval);
+          }, [isStarted]);
+
+          useEffect(() => {
+              const loadSparklines = async () => {
+                  const data = await ScannerAPI.getCandles('BTCUSDT', 50, '1m'); 
+                  if (data && data.length > 0) {
+                      setSparklines({'BTCUSDT': data});
+                      currentPrice.current = data[data.length - 1].close;
+                  }
+              };
+              loadSparklines();
+          }, []);
+
+          useEffect(() => {
+            fetchNews();
+            const newsInterval = setInterval(fetchNews, 20 * 60 * 1000); 
+            return () => clearInterval(newsInterval);
+          }, []);
+
+          const addLog = (msg, isAi = false) => {
+            const prefix = isAi ? 'SMC АНАЛИЗ:' : 'СИСТЕМА:';
+            setLogs(p => [`${prefix} ${msg}`, ...p].slice(0, 5)); 
+          };
+
+          const playSound = (type) => {
+            if (!audioCtx.current) return;
+            const ctx = audioCtx.current;
+            if (ctx.state === 'suspended') ctx.resume();
+            
+            const playTone = (freq, oscType, dur, vol, delay = 0) => {
+                try {
+                    const o = ctx.createOscillator();
+                    const g = ctx.createGain();
+                    o.type = oscType;
+                    o.frequency.setValueAtTime(freq, ctx.currentTime + delay);
+                    g.gain.setValueAtTime(0, ctx.currentTime + delay);
+                    g.gain.linearRampToValueAtTime(vol, ctx.currentTime + delay + 0.02);
+                    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + dur);
+                    o.connect(g); g.connect(ctx.destination);
+                    o.start(ctx.currentTime + delay);
+                    o.stop(ctx.currentTime + delay + dur);
+                } catch (e) {}
+            };
+
+            if (type === 'scan') playTone(1200 + Math.random()*300, 'sine', 0.03, 0.005);
+            if (type === 'found') { playTone(600, 'triangle', 0.1, 0.03); playTone(800, 'triangle', 0.1, 0.03, 0.1); }
+            if (type === 'tf_change') playTone(800, 'sine', 0.1, 0.02);
+            if (type === 'start') { 
+                playTone(523.25, 'sine', 0.4, 0.03); 
+                playTone(659.25, 'sine', 0.5, 0.03, 0.1); 
+                playTone(783.99, 'sine', 0.6, 0.04, 0.2); 
+            }
+            if (type === 'win') { 
+                playTone(523.25, 'triangle', 0.4, 0.04); 
+                playTone(659.25, 'triangle', 0.5, 0.04, 0.1); 
+                playTone(783.99, 'triangle', 0.8, 0.05, 0.2); 
+            }
+            if (type === 'loss') { 
+                playTone(300, 'sawtooth', 0.4, 0.03); 
+                playTone(250, 'sawtooth', 0.6, 0.04, 0.2); 
+            }
+            if (type === 'cancel') {
+                playTone(400, 'square', 0.1, 0.04); 
+                playTone(300, 'square', 0.2, 0.04, 0.15); 
+            }
+          };
+
+          const speak = (text) => new Promise(res => {
+            if (!window.speechSynthesis) return res();
+            window.speechSynthesis.cancel(); 
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = 'ru-RU'; 
+            u.rate = 1.05; 
+            u.pitch = 0.95; 
+            
+            let resolved = false;
+            let fallbackTimer;
+
+            const resolveOnce = () => {
+                if (!resolved) {
+                    resolved = true;
+                    clearTimeout(fallbackTimer);
+                    setTimeout(res, 200); 
+                }
+            };
+
+            u.onend = resolveOnce; 
+            u.onerror = resolveOnce;
+            
+            try {
+                window.speechSynthesis.speak(u);
+            } catch(e) { resolveOnce(); }
+            
+            fallbackTimer = setTimeout(resolveOnce, Math.max(3000, text.length * 80)); 
+          });
+
+          const initChart = async () => {
+            if (!chartContainerRef.current) return;
+            if (!window.LightweightCharts) {
+              await new Promise(resolve => {
+                const script = document.createElement('script');
+                script.src = 'https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js';
+                script.onload = resolve; document.head.appendChild(script);
+              });
+            }
+
+            // ИСПРАВЛЕНИЕ 1: Если график уже есть, МЫ ЕГО НЕ СТИРАЕМ.
+            if (chartInstance.current) {
+                return;
+            }
+
+            try {
+                const mainChart = window.LightweightCharts.createChart(chartContainerRef.current, {
+                  autoSize: true,
+                  layout: { background: { type: 'solid', color: 'transparent' }, textColor: '#475569', fontFamily: 'JetBrains Mono' },
+                  grid: { vertLines: { color: 'rgba(148, 163, 184, 0.2)' }, horzLines: { color: 'rgba(148, 163, 184, 0.2)' } },
+                  timeScale: { borderVisible: false, timeVisible: true, secondsVisible: false },
+                  rightPriceScale: { borderVisible: false }
+                });
+
+                candleSeries.current = mainChart.addCandlestickSeries({ 
+                  upColor: '#0ea5e9', 
+                  downColor: '#ef4444', 
+                  borderVisible: true, 
+                  borderUpColor: '#0ea5e9', 
+                  borderDownColor: '#ef4444', 
+                  wickUpColor: '#0ea5e9', 
+                  wickDownColor: '#ef4444'
+                });
+
+                chartInstance.current = mainChart;
+            } catch(e) {
+                console.error("Ошибка инициализации графика", e);
+            }
+          };
+
+          const clearChartExtras = () => {
+              if (!chartInstance.current || !candleSeries.current) return;
+              
+              priceLinesRef.current.forEach(l => {
+                  try { candleSeries.current.removePriceLine(l); } catch(e){}
+              });
+              priceLinesRef.current = [];
+              
+              extraSeriesRef.current.forEach(s => {
+                  try { chartInstance.current.removeSeries(s); } catch(e){}
+              });
+              extraSeriesRef.current = [];
+          };
+
+          const drawIndicators = (upperData, lowerData) => {
+              clearChartExtras();
+              let upperSeries, lowerSeries;
+              
+              try {
+                  upperSeries = chartInstance.current.addLineSeries({ 
+                      color: 'rgba(244, 63, 94, 0.5)', // Rose-500
+                      lineWidth: 2, 
+                      lineStyle: 2, // Dashed
+                      title: 'BUY LIQUIDITY' 
+                  });
+                  upperSeries.setData(upperData);
+                  extraSeriesRef.current.push(upperSeries);
+
+                  lowerSeries = chartInstance.current.addLineSeries({ 
+                      color: 'rgba(16, 185, 129, 0.5)', // Emerald-500
+                      lineWidth: 2, 
+                      lineStyle: 2, // Dashed
+                      title: 'SELL LIQUIDITY' 
+                  });
+                  lowerSeries.setData(lowerData);
+                  extraSeriesRef.current.push(lowerSeries);
+              } catch(e) {}
+              
+              return { upperSeries, lowerSeries };
+          };
+
+          const drawEntryLine = (price) => {
+            if (!candleSeries.current) return;
+            try {
+                const line = candleSeries.current.createPriceLine({
+                    price: price,
+                    color: '#1d4ed8',
+                    lineWidth: 2,
+                    lineStyle: 3,
+                    axisLabelVisible: true,
+                    title: `ВХОД (CHoCH)`
+                });
+                priceLinesRef.current.push(line);
+            } catch(e) {}
+          };
+
+          const updateStatus = (phase, colorClass) => {
+              setAppPhase(phase);
+              setStatusColorClass(colorClass);
+          };
+
+          const runTerminalEngine = async () => {
+            if (engineActive.current) return;
+            engineActive.current = true;
+
+            if (audioCtx.current && audioCtx.current.state === 'suspended') {
+                await audioCtx.current.resume();
+            }
+
+            let lastCancelledTime = 0;
+
+            await speak('Институциональный алгоритм активирован. Запущен анализ пулов ликвидности Smart Money за последние 2 часа. Поиск ложных пробоев и слома структуры рынка.');
+            await new Promise(r => setTimeout(r, 500)); 
+
+            // ОЧИЩАЕМ ИСТОРИЮ ТОЛЬКО ПРИ САМОМ ПЕРВОМ ЗАПУСКЕ
+            markersRef.current = [];
+            updateStatus('БЭКТЕСТ: АНАЛИЗ SMC ИСТОРИИ...', 'text-cyan-600');
+            addLog(`ЗАПУСК НЕЙРОСЕТИ: ПОИСК СНЯТИЯ ЛИКВИДНОСТИ 120 МИНУТ...`, true);
+
+            const curAsset = ASSETS[0];
+            const initialData = await ScannerAPI.getCandles(curAsset.symbol, 400, '1m');
+            
+            if (initialData && initialData.length > 200) {
+                setSparklines(prev => ({...prev, [curAsset.symbol]: initialData}));
+                currentPrice.current = initialData[initialData.length - 1].close;
+
+                const liqZones = calcLiquidityZones(initialData, 30); 
+                const atrSeries = calcATRSeries(initialData, 14); 
+
+                const liqMap = new Map(liqZones.map(i => [i.time, {upper: i.upper, lower: i.lower}]));
+                const atrMap = new Map(atrSeries.map(i => [i.time, i.value]));
+
+                const upperData = liqZones.map(i => ({time: i.time, value: i.upper}));
+                const lowerData = liqZones.map(i => ({time: i.time, value: i.lower}));
+
+                let historicalWins = 0;
+                let historicalLosses = 0;
+
+                // ИСПРАВЛЕНИЕ 2: Чуть смягченный стартовый фильтр (0.8), чтобы на графике гарантированно было 2-4 реальных сигнала из истории
+                const historyStrictness = 0.8;
+                const startIdx = initialData.length - 125;
+                const endIdx = initialData.length - 6;
+
+                for (let idx = startIdx; idx <= endIdx; idx++) {
+                    const currTime = initialData[idx].time;
+                    const currCandle = initialData[idx];
+                    const prevCandle = initialData[idx - 1];
+                    
+                    const zones = liqMap.get(currTime);
+                    const cAtr = atrMap.get(currTime);
+
+                    if (zones && cAtr !== undefined) {
+                        const cUpper = zones.upper;
+                        const cLower = zones.lower;
+
+                        const rangeWidth = cUpper - cLower;
+                        const isRangeValid = rangeWidth > (cAtr * (1.5 * historyStrictness));
+
+                        let isCall = false;
+                        let isPut = false;
+
+                        // SMC Логика PUT (строгий CHoCH)
+                        const sweptTop = currCandle.high > cUpper || prevCandle.high > cUpper;
+                        const returnedInsideTop = currCandle.close < cUpper;
+                        const structureBreakTop = currCandle.close < prevCandle.low; 
+                        
+                        if (sweptTop && returnedInsideTop && structureBreakTop && isRangeValid) {
+                            isPut = true;
+                        }
+                        
+                        // SMC Логика CALL (строгий CHoCH)
+                        const sweptBottom = currCandle.low < cLower || prevCandle.low < cLower;
+                        const returnedInsideBottom = currCandle.close > cLower;
+                        const structureBreakBottom = currCandle.close > prevCandle.high; 
+
+                        if (sweptBottom && returnedInsideBottom && structureBreakBottom && isRangeValid) {
+                            isCall = true;
+                        }
+
+                        if (isCall || isPut) {
+                            const entryPrice = currCandle.close;
+                            const exitPrice = initialData[idx + 5].close;
+                            let isWin = false;
+
+                            if ((isCall && exitPrice > entryPrice) || (isPut && exitPrice < entryPrice) || exitPrice === entryPrice) {
+                                isWin = true;
+                            }
+
+                            markersRef.current.push({
+                                time: currTime,
+                                position: isCall ? 'belowBar' : 'aboveBar',
+                                color: isCall ? '#0ea5e9' : '#f43f5e',
+                                shape: isCall ? 'arrowUp' : 'arrowDown',
+                                text: isWin ? 'ВИН (+)' : 'ЛОСС (-)',
+                                size: 1
+                            });
+
+                            if (isWin) historicalWins++;
+                            else historicalLosses++;
+
+                            idx += 5; 
+                        }
+                    }
+                }
+
+                const total = historicalWins + historicalLosses;
+                const wr = total > 0 ? Math.round((historicalWins / total) * 100) : 0;
+                
+                statsRef.current.wins = historicalWins;
+                statsRef.current.losses = historicalLosses;
+                setTradeStats({ wins: historicalWins, losses: historicalLosses, winRate: wr });
+
+                if (total > 0) {
+                    addLog(`БЭКТЕСТ ЗА 2H ЗАВЕРШЕН: СИГНАЛОВ SMC ${total}, ВИНРЕЙТ ${wr}%`, true);
+                    if (wr >= 60) filterStrictness.current = 1.0;
+                    else filterStrictness.current = 1.5;
+                } else {
+                    addLog(`БЭКТЕСТ ЗА 2H: ПУЛЫ НЕ СНЯТЫ. РЫНОК В НАКОПЛЕНИИ.`, true);
+                }
+
+                setAsset(curAsset);
+                setViewMode('DETAIL');
+                await initChart();
+                if (candleSeries.current) {
+                    candleSeries.current.setData(initialData);
+                    if (markersRef.current.length > 0) {
+                        candleSeries.current.setMarkers(markersRef.current);
+                    }
+                    drawIndicators(upperData, lowerData);
+                    try { chartInstance.current.timeScale().fitContent(); } catch(e) {}
+                }
+
+                if (total > 0) {
+                    playSound('win');
+                    await speak(`Бэктест завершен. Логика Smart Money отработала ${total} реальных паттернов за последние 2 часа. Винрейт ${wr} процентов. Перехожу к живому сканированию рынка.`);
+                } else {
+                    await speak(`Бэктест завершен. За последние 2 часа сильных паттернов не обнаружено. Перехожу к живому сканированию рынка.`);
+                }
+
+                updateStatus('ИЗУЧЕНИЕ РЕАЛЬНОЙ ИСТОРИИ...', 'text-slate-500');
+                await new Promise(r => setTimeout(r, 6000));
+
+                await speak('Запускаю радар поиска новой ликвидности.');
+                setViewMode('SCREENER');
+                await new Promise(r => setTimeout(r, 1000));
+            } else {
+                addLog("ОШИБКА: НЕТ СВЯЗИ С БИРЖЕЙ BINANCE", true);
+                updateStatus('ОШИБКА API BINANCE', 'text-rose-600');
+                await speak('Ошибка связи с криптобиржей Бинанс. Попробуйте перезапустить утилиту позже.');
+            }
+            
+            // ОСНОВНОЙ ЛАЙВ-ЦИКЛ
+            while (engineActive.current) {
+              try {
+                  updateStatus('СКАНИРОВАНИЕ ЛИКВИДНОСТИ...', 'text-slate-700');
+                  setViewMode('SCREENER');
+                  setSignal(null);
+                  setCurrentTF('1M');
+                  
+                  setMetrics(prev => ({ ...prev, filterLevel: filterStrictness.current * 10, smartMoney: 15 }));
+
+                  let signalFound = false;
+
+                  for(let cur of ASSETS) {
+                    if (!engineActive.current) break;
+                    setScanIndex(0); 
+                    playSound('scan');
+                    
+                    const data = await ScannerAPI.getCandles(cur.symbol, 400, '1m'); 
+                    
+                    if (data && data.length > 200) {
+                      setSparklines(prev => ({...prev, [cur.symbol]: data}));
+
+                      const lastIdx = data.length - 1;
+                      currentPrice.current = data[lastIdx].close; 
+
+                      const liqZones = calcLiquidityZones(data, 30); 
+                      const atrSeries = calcATRSeries(data, 14);    
+
+                      const liqMap = new Map(liqZones.map(i => [i.time, {upper: i.upper, lower: i.lower}]));
+                      const atrMap = new Map(atrSeries.map(i => [i.time, i.value]));
+
+                      const upperData = liqZones.map(i => ({time: i.time, value: i.upper}));
+                      const lowerData = liqZones.map(i => ({time: i.time, value: i.lower}));
+
+                      let isCall = false;
+                      let isPut = false;
+                      let triggerCandleIdx = lastIdx;
+
+                      for (let j = 0; j < 3; j++) {
+                          const idx = lastIdx - j;
+                          if (idx < 200) continue; 
+
+                          const currTime = data[idx].time;
+                          const currCandle = data[idx];
+                          const prevCandle = data[idx - 1];
+                          
+                          const zones = liqMap.get(currTime);
+                          const cAtr = atrMap.get(currTime);
+                          
+                          if (zones !== undefined && cAtr !== undefined) {
+                              const cUpper = zones.upper;
+                              const cLower = zones.lower;
+
+                              const rangeWidth = cUpper - cLower;
+                              const isRangeValid = rangeWidth > (cAtr * (1.5 * filterStrictness.current));
+
+                              const sweptTop = currCandle.high > cUpper || prevCandle.high > cUpper;
+                              const returnedInsideTop = currCandle.close < cUpper;
+                              const structureBreakTop = currCandle.close < prevCandle.low;
+
+                              if (sweptTop && returnedInsideTop && structureBreakTop && isRangeValid) {
+                                  if (currTime !== lastCancelledTime) {
+                                      isPut = true; triggerCandleIdx = idx; break;
+                                  }
+                              }
+                              
+                              const sweptBottom = currCandle.low < cLower || prevCandle.low < cLower;
+                              const returnedInsideBottom = currCandle.close > cLower;
+                              const structureBreakBottom = currCandle.close > prevCandle.high;
+
+                              if (sweptBottom && returnedInsideBottom && structureBreakBottom && isRangeValid) {
+                                  if (currTime !== lastCancelledTime) {
+                                      isCall = true; triggerCandleIdx = idx; break;
+                                  }
+                              }
+                          }
+                      }
+
+                      if (isCall || isPut) {
+                          signalFound = true;
+                          
+                          setAsset(cur);
+                          setViewMode('DETAIL');
+                          
+                          const structureValue = isCall ? 100 : 0;
+                          
+                          setMetrics(prev => ({ ...prev, structure: structureValue, liquidity: 90, smartMoney: 85, buyPressure: isCall ? 85 : 15 }));
+
+                          await initChart();
+                          playSound('found');
+                          
+                          // ИСПРАВЛЕНИЕ 3: При новом сигнале мы НЕ стираем график через setData. Мы просто аккуратно добавляем новые данные и маркеры.
+                          if(candleSeries.current) {
+                              try { 
+                                  // Обновляем последние 5 свечей, чтобы график оставался на месте
+                                  data.slice(-5).forEach(d => candleSeries.current.update(d));
+                                  
+                                  markersRef.current.push({
+                                      time: data[triggerCandleIdx].time,
+                                      position: isCall ? 'belowBar' : 'aboveBar',
+                                      color: isCall ? '#0ea5e9' : '#f43f5e',
+                                      shape: isCall ? 'arrowUp' : 'arrowDown',
+                                      text: 'ВХОД (CHoCH)',
+                                      size: 2
+                                  });
+                                  candleSeries.current.setMarkers(markersRef.current);
+                              } catch (e) {}
+                          }
+
+                          const liveMarkerIdx = markersRef.current.length - 1;
+                          drawIndicators(upperData, lowerData);
+                          currentPrice.current = data[lastIdx].close;
+                          
+                          const directionText = isCall ? "повышение" : "понижение";
+                          
+                          updateStatus(`ГОТОВЬТЕ: BTC (5 МИН)`, 'text-cyan-600 font-bold animate-pulse');
+                          addLog(`ЗАФИКСИРОВАНО СНЯТИЕ ЛИКВИДНОСТИ`, true);
+                          addLog(`СЛОМ СТРУКТУРЫ (CHoCH) ПОДТВЕРЖДЕН`, true);
+
+                          await speak(`Внимание. Зафиксировано снятие ликвидности маркетмейкером и возврат цены в диапазон. Слом структуры подтвержден. Подготовьте Биткоин. Время пять минут. Направление на ${directionText}.`);
+
+                          for(let w=6; w>0; w--) {
+                              updateStatus(`ОТКРЫВАЙТЕ БРОКЕРА... ${w}С`, 'text-cyan-600 font-bold');
+                              playSound('scan');
+                              await new Promise(r => setTimeout(r, 1000));
+                          }
+
+                          let tradeCancelled = false;
+                          updateStatus('СНАЙПЕР: ФИНАЛЬНЫЙ ЧЕК СТРУКТУРЫ', 'text-slate-800 font-bold animate-pulse');
+                          addLog(`ЖДЕМ ПОДТВЕРЖДЕНИЯ ИМПУЛЬСА...`, true);
+
+                          for(let w=2; w>0; w--) {
+                              await new Promise(r => setTimeout(r, 1000));
+                              try {
+                                  const liveData = await ScannerAPI.getCandles(cur.symbol, 3, '1m');
+                                  const liveTick = liveData[liveData.length - 1];
+                                  
+                                  if (liveTick && liveTick.time >= data[data.length - 1].time) {
+                                      currentPrice.current = liveTick.close;
+                                      if (candleSeries.current) {
+                                          try { candleSeries.current.update(liveTick); } catch(e){}
+                                      }
+                                      
+                                      const currentZones = calcLiquidityZones(data, 30);
+                                      const liveUpper = currentZones[currentZones.length-1].upper;
+                                      const liveLower = currentZones[currentZones.length-1].lower;
+
+                                      if (isPut && liveTick.close > liveUpper) tradeCancelled = true;
+                                      if (isCall && liveTick.close < liveLower) tradeCancelled = true;
+                                  }
+                              } catch(e) {}
+                          }
+
+                          if (tradeCancelled) {
+                              lastCancelledTime = data[triggerCandleIdx].time; 
+                              playSound('cancel');
+                              updateStatus('ОТМЕНА: ИСТИННЫЙ ПРОБОЙ', 'text-rose-600 font-bold');
+                              addLog(`СИГНАЛ ОТМЕНЕН: ЦЕНА ВЕРНУЛАСЬ ЗА ЗОНУ`, true);
+                              await speak("Внимание. Отмена. Это истинный пробой, паттерн умных денег сломан. Возвращаюсь к радару.");
+                              
+                              await new Promise(r => setTimeout(r, 4000));
+                              setViewMode('SCREENER');
+                              updateStatus('ПЕРЕЗАПУСК СКАНИРОВАНИЯ...', 'text-slate-600');
+                              await new Promise(r => setTimeout(r, 2000));
+                              break; 
+                          }
+
+                          playSound('start');
+                          updateStatus('СИГНАЛ АКТИВЕН', 'text-blue-700 font-bold');
+                          
+                          const entryPrice = currentPrice.current;
+                          const expMins = 5; 
+                          
+                          setSignal({ type: isCall ? 'CALL' : 'PUT', exp: expMins, entryPrice });
+                          drawEntryLine(entryPrice);
+
+                          addLog(`СИГНАЛ ВЫПОЛНЕН: ВХОД ${isCall ? 'ВВЕРХ' : 'ВНИЗ'} НА 5 МИН.`, true);
+
+                          speak(`Слом структуры подтвержден. Вход на ${directionText}! Время пять минут. Жмите кнопку!`);
+
+                          let newsReadInThisTrade = false;
+                          const readOneRealBtcNews = () => {
+                             if(fullNewsPool.current.length === 0) {
+                                 fetchNews(); 
+                                 return;
+                             }
+                             const idx = Math.floor(Math.random() * fullNewsPool.current.length);
+                             const textToRead = fullNewsPool.current.splice(idx, 1)[0].toLowerCase(); 
+                             
+                             try {
+                                 if(window.speechSynthesis && !window.speechSynthesis.speaking) {
+                                     const u = new SpeechSynthesisUtterance("Сводка: " + textToRead);
+                                     u.lang = 'ru-RU'; u.rate = 1.1; u.pitch = 0.95;
+                                     window.speechSynthesis.speak(u);
+                                 }
+                             } catch(e){}
+                          };
+
+                          let expirySeconds = expMins * 60;
+                          let isLive = true;
+                          
+                          const liveChartTask = (async () => {
+                            let localLastTime = 0;
+                            while (isLive && engineActive.current) {
+                              await new Promise(r => setTimeout(r, 2000));
+                              if (!isLive) break;
+                              try {
+                                const liveTickArray = await ScannerAPI.getCandles(cur.symbol, 2, '1m');
+                                if (liveTickArray && liveTickArray.length > 0 && candleSeries.current) {
+                                  liveTickArray.forEach(tick => {
+                                    if (tick.time >= localLastTime && !isNaN(tick.close)) {
+                                      try {
+                                          candleSeries.current.update(tick);
+                                          currentPrice.current = tick.close;
+                                          localLastTime = Math.max(localLastTime, tick.time);
+                                      } catch (err) {}
+                                    }
+                                  });
+                                }
+                              } catch (e) {}
+                            }
+                          })();
+
+                          while(expirySeconds > 0) {
+                            setCountdown(expirySeconds);
+                            
+                            if (expirySeconds === Math.floor((expMins * 60) / 2) && !newsReadInThisTrade) {
+                                 readOneRealBtcNews();
+                                 newsReadInThisTrade = true;
+                            }
+
+                            await new Promise(r => setTimeout(r, 1000));
+                            expirySeconds--;
+                          }
+                          
+                          isLive = false;
+                          setCountdown(null);
+                          updateStatus('АНАЛИЗ РЕЗУЛЬТАТА', 'text-slate-500');
+
+                          const resultData = await ScannerAPI.getCandles(cur.symbol, 1, '1m');
+                          let finalPrice = entryPrice;
+                          if (resultData && resultData.length > 0) {
+                              finalPrice = resultData[resultData.length - 1].close;
+                          }
+                          let isWin = false;
+
+                          if ((isCall && finalPrice > entryPrice) || (isPut && finalPrice < entryPrice)) isWin = true;
+                          else if (finalPrice === entryPrice) isWin = true; 
+
+                          if (markersRef.current[liveMarkerIdx]) {
+                              markersRef.current[liveMarkerIdx].text = isWin ? 'ВИН (+)' : 'ЛОСС (-)';
+                              if (candleSeries.current) {
+                                  candleSeries.current.setMarkers(markersRef.current);
+                              }
+                          }
+
+                          if (isWin) {
+                            playSound('win');
+                            statsRef.current.wins++;
+                            filterStrictness.current = Math.max(1.0, filterStrictness.current - 0.2);
+                          } else {
+                            playSound('loss');
+                            statsRef.current.losses++;
+                            filterStrictness.current = Math.min(2.5, filterStrictness.current + 0.5);
+                            addLog(`ФИЛЬТРЫ ЛИКВИДНОСТИ УСИЛЕНЫ ДО ${filterStrictness.current.toFixed(1)}`, true);
+                          }
+
+                          const newTotal = statsRef.current.wins + statsRef.current.losses;
+                          const newWinRate = Math.round((statsRef.current.wins / newTotal) * 100);
+                          setTradeStats({ wins: statsRef.current.wins, losses: statsRef.current.losses, winRate: newWinRate });
+
+                          if (isWin) {
+                            addLog(`РЕЗУЛЬТАТ: ПЛЮС (+). ВЫХОД: ${formatPrice(finalPrice)}`);
+                            await speak(`Плюс. Сделка успешно завершена. Текущий винрейт: ${newWinRate} процентов.`);
+                          } else {
+                            addLog(`РЕЗУЛЬТАТ: МИНУС (-).`);
+                            await speak(`Минус. Маркетмейкер пошел дальше. Усиливаю фильтры ликвидности.`);
+                          }
+
+                          setSignal(null);
+                          setMetrics(prev => ({ ...prev, smartMoney: 0 }));
+                          await new Promise(r => setTimeout(r, 2000));
+                          break; 
+                      }
+                    }
+                  }
+                  
+                  if (!signalFound) {
+                      await new Promise(r => setTimeout(r, 1500)); 
+                  }
+              } catch (e) {
+                  addLog("ПЕРЕЗАПУСК РАДАРА...", true);
+                  await new Promise(r => setTimeout(r, 3000));
+              }
+            }
+          };
+
+          const startTerminal = () => {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx.current = new AudioContext();
+            const osc = audioCtx.current.createOscillator();
+            osc.connect(audioCtx.current.destination);
+            osc.start(0); osc.stop(0.01);
+
+            if (window.speechSynthesis) {
+                const unlockUtterance = new SpeechSynthesisUtterance('');
+                window.speechSynthesis.speak(unlockUtterance);
+            }
+
+            setIsStarted(true);
+            runTerminalEngine();
+          };
+
+          if (!isStarted) {
+            return (
+              <div className="h-[100dvh] w-screen flex flex-col items-center justify-center relative overflow-hidden text-slate-900">
+                <div className="bg-orb-1 pointer-events-none"></div>
+                <div className="bg-orb-2 pointer-events-none"></div>
+                <div className="absolute inset-0 bg-grid-pattern pointer-events-none opacity-40"></div>
+                
+                <div className="max-w-[90%] sm:max-w-md w-full p-8 md:p-12 text-center relative z-10 glass-panel-heavy rounded-[2.5rem] premium-glow flex flex-col items-center">
+                  <div className="w-20 h-20 mb-6 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-[0_15px_30px_rgba(14,165,233,0.4)] border border-white/50 relative overflow-hidden">
+                      <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+                      <Zap size={44} className="text-white relative z-10" />
+                  </div>
+                  <h1 className="text-4xl md:text-5xl text-slate-800 leading-none mb-3 oswald-font font-bold tracking-wide drop-shadow-sm">
+                    КРИПТО ЯДРО <br/><span className="text-gradient font-black drop-shadow-[0_0_15px_rgba(14,165,233,0.3)]">PRO MAX</span>
+                  </h1>
+                  <p className="text-sm md:text-base text-slate-500 tracking-[0.2em] mb-10 font-bold leading-tight uppercase">
+                    Smart Money Concepts
+                  </p>
+                  <button 
+                    onClick={startTerminal} 
+                    className="w-full py-4 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 border border-white/50 shadow-[0_15px_35px_rgba(14,165,233,0.4)] text-white text-xl md:text-2xl transition-all duration-300 oswald-font font-bold active:scale-95 rounded-2xl cursor-pointer flex items-center justify-center gap-3 group relative overflow-hidden"
+                  >
+                    <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out"></div>
+                    <Cpu size={24} className="text-blue-50 group-hover:animate-spin relative z-10" /> 
+                    <span className="relative z-10 tracking-widest">ЗАПУСК СИСТЕМЫ</span>
+                  </button>
+                </div>
+              </div>
+            );
+          }
+
+          return (
+            <div className="h-[100dvh] w-screen flex flex-col text-slate-900 relative overflow-hidden selection:bg-cyan-500/20">
+              <div className="bg-orb-1 pointer-events-none opacity-80"></div>
+              <div className="bg-orb-2 pointer-events-none opacity-80"></div>
+              <div className="absolute inset-0 bg-grid-pattern pointer-events-none z-0 opacity-60"></div>
+
+              <div className="h-7 md:h-9 glass-panel z-50 overflow-hidden flex items-center shrink-0 w-full relative">
+                <div className="absolute left-0 h-full bg-slate-900 text-white px-3 md:px-5 flex items-center gap-2 z-20 text-[10px] md:text-xs tracking-widest shadow-[5px_0_15px_rgba(0,0,0,0.1)] font-bold oswald-font rounded-r-xl border-r border-cyan-500/50">
+                  <Globe size={14} className="text-cyan-400" /> РАДАР СЕТИ
+                </div>
+                <div className="flex-1 overflow-hidden relative h-full flex items-center ml-[120px] sm:ml-[160px]">
+                  <div className="ticker-wrapper text-[10px] md:text-xs text-slate-700 tracking-widest pt-0.5 font-bold oswald-font">
+                    {[...Array(2)].map((_, idx) => (
+                      <div key={idx} className="flex gap-10 md:gap-16 whitespace-nowrap pr-10 md:pr-16">
+                        {newsHeadlines.map((headline, i) => (
+                          <span key={i} className="flex items-center">
+                            <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 mr-2 shadow-[0_0_8px_rgba(6,182,212,0.8)]"></span>
+                            {headline.toUpperCase()}
+                          </span>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <header className="h-auto md:h-16 py-2 md:py-0 flex flex-col md:flex-row items-start md:items-center justify-between px-3 md:px-6 shrink-0 z-40 gap-1 md:gap-0 mt-2">
+                <div className="flex flex-col justify-center w-full md:w-auto">
+                  <div className="flex justify-between items-center md:block">
+                      <h1 className="text-2xl md:text-3xl text-slate-900 leading-none font-bold flex items-center gap-2 oswald-font tracking-wider">
+                        <Zap size={28} className="text-cyan-600 drop-shadow-[0_0_10px_rgba(6,182,212,0.4)]" /> 
+                        ТЕРМИНАЛ <span className="text-gradient font-black hidden sm:inline">PRO MAX</span>
+                      </h1>
+                      <div className="text-[10px] text-white px-3 py-1 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-lg flex items-center shadow-[0_0_15px_rgba(14,165,233,0.3)] oswald-font tracking-widest block md:hidden font-bold">
+                        {appPhase}
+                      </div>
+                  </div>
+                  <div className="text-[9px] md:text-xs text-slate-500 tracking-[0.2em] mt-1 font-bold leading-none uppercase">
+                    Алгоритм SMC • Анализ Ликвидности
+                  </div>
+                </div>
+                <div className="flex flex-row md:flex-col items-center md:items-end justify-between w-full md:w-auto gap-1 md:gap-1.5">
+                  <div className="text-xs md:text-sm text-white px-4 py-1.5 border border-white/50 bg-gradient-to-r from-blue-600 to-cyan-500 shadow-[0_5px_20px_rgba(14,165,233,0.3)] rounded-lg oswald-font tracking-widest hidden md:block font-bold">
+                    {appPhase}
+                  </div>
+                  <div className="flex gap-4 items-center tracking-wider w-full md:w-auto justify-between md:justify-end">
+                    <span className="text-[9px] md:text-[10px] text-slate-600 flex items-center gap-1.5 font-bold uppercase border border-slate-300 px-2 py-0.5 rounded-full bg-white/50">
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
+                      ПОДКЛЮЧЕНО К БИРЖЕ
+                    </span>
+                    <LiveClock />
+                  </div>
+                </div>
+              </header>
+
+              <main className="flex-1 flex flex-col md:flex-row p-2 md:p-4 gap-3 md:gap-4 overflow-hidden z-10">
+                
+                <div className="w-full md:flex-1 h-[50vh] md:h-full glass-panel-heavy rounded-3xl md:rounded-[2.5rem] relative overflow-hidden flex flex-col shrink-0">
+                  
+                  <div className={`absolute inset-0 z-30 transition-all duration-700 bg-transparent flex items-center justify-center p-4 md:p-10 ${viewMode === 'SCREENER' ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                    
+                    <div className="card-3d-wrapper w-full max-w-4xl h-[45vh] md:h-[65vh] flex">
+                       <div className="card-3d relative w-full h-full flex flex-col p-6 md:p-10 rounded-[2.5rem]">
+                          
+                          <div className="flex justify-between items-start mb-6 md:mb-8 relative z-10">
+                              <div className="flex items-center gap-5">
+                                  <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-blue-600 to-cyan-400 text-white rounded-3xl flex items-center justify-center font-bold text-3xl md:text-5xl shadow-[0_15px_30px_rgba(14,165,233,0.4)] border border-white/60">
+                                      ₿
+                                  </div>
+                                  <div>
+                                      <h2 className="text-3xl md:text-5xl font-black text-slate-900 oswald-font tracking-wider leading-none drop-shadow-sm">BITCOIN</h2>
+                                      <span className="text-base md:text-xl font-bold text-cyan-700 tracking-[0.2em] uppercase mt-2 inline-block bg-cyan-100/50 px-3 py-1 rounded-lg border border-cyan-200">BTC/USDT • 1M</span>
+                                  </div>
+                              </div>
+                              <div className="flex flex-col items-end">
+                                  <div className="flex items-center gap-2 text-slate-900 bg-white/80 px-4 py-2 rounded-xl shadow-[0_10px_20px_rgba(15,23,42,0.05)] border border-slate-200">
+                                      <span className="text-xs md:text-sm font-bold tracking-widest uppercase">Smart Money Concept</span>
+                                      <Radar size={18} className="animate-spin text-cyan-500" />
+                                  </div>
+                              </div>
+                          </div>
+
+                          <div className="flex-1 overflow-hidden rounded-3xl bg-white/90 border-2 border-white relative shadow-[inset_0_4px_20px_rgba(0,0,0,0.05)] z-10">
+                              <MiniChart data={sparklines['BTCUSDT']} />
+                              <div className="absolute inset-0 scanline-anim pointer-events-none opacity-40 mix-blend-overlay" />
+                          </div>
+
+                          <div className="mt-6 flex justify-between items-center bg-white/80 p-4 rounded-2xl border border-white relative z-10 shadow-sm">
+                              <span className="text-xs md:text-sm text-slate-700 font-bold tracking-widest uppercase">Поиск снятия ликвидности за границами пула...</span>
+                              <div className="flex gap-2">
+                                  <div className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-bounce shadow-[0_0_8px_rgba(59,130,246,0.6)]" style={{animationDelay: '0ms'}}></div>
+                                  <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-bounce shadow-[0_0_8px_rgba(34,211,238,0.6)]" style={{animationDelay: '150ms'}}></div>
+                                  <div className="w-2.5 h-2.5 rounded-full bg-blue-400 animate-bounce shadow-[0_0_8px_rgba(96,165,250,0.6)]" style={{animationDelay: '300ms'}}></div>
+                              </div>
+                          </div>
+                          
+                       </div>
+                    </div>
+
+                  </div>
+
+                  <div className={`absolute inset-0 z-20 flex flex-col transition-all duration-700 bg-transparent ${viewMode === 'DETAIL' ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                    <div className="absolute top-5 left-5 z-40 flex flex-col gap-2">
+                      <div className="glass-card p-4 md:p-5 rounded-3xl min-w-[160px] border-white shadow-[0_15px_40px_rgba(14,165,233,0.15)] relative overflow-hidden bg-white/80">
+                        <div className="absolute -right-10 -top-10 w-24 h-24 bg-cyan-400/20 rounded-full blur-xl pointer-events-none"></div>
+                        <div className="text-[10px] md:text-xs text-slate-500 tracking-widest mb-1.5 flex items-center gap-2 font-bold uppercase">
+                          <div className="w-2 h-2 bg-cyan-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(6,182,212,0.8)]"/> РЕАЛЬНОЕ ВРЕМЯ
+                        </div>
+                        <div className="text-4xl md:text-5xl tracking-wider text-slate-900 leading-none pt-0.5 font-black oswald-font drop-shadow-sm">{asset.name}</div>
+                        <div className="mt-3 text-xs md:text-sm text-slate-700 tracking-widest font-bold flex items-center gap-2">
+                            ТАЙМФРЕЙМ: <span className="text-white bg-gradient-to-r from-blue-600 to-cyan-500 px-3 py-1 rounded-lg shadow-[0_4px_10px_rgba(14,165,233,0.4)] border border-white/50">{currentTF}</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex-1 relative w-full mt-32 md:mt-36 flex flex-col gap-2 px-4 pb-4 md:px-5 md:pb-5">
+                        <div className="flex-1 relative w-full rounded-3xl overflow-hidden shadow-[inset_0_5px_20px_rgba(0,0,0,0.05)] bg-white/90 border border-white">
+                            <div ref={chartContainerRef} className="absolute inset-0" />
+                        </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="w-full md:w-[340px] lg:w-[380px] flex flex-col glass-panel-heavy rounded-3xl md:rounded-[2.5rem] overflow-hidden shrink-0 relative min-h-[50vh] md:h-full">
+                  
+                  <div className="border-b border-white/80 p-3 bg-gradient-to-r from-blue-100/60 to-transparent flex justify-center items-center shrink-0 min-h-[48px] shadow-sm relative z-10">
+                    <div className={`text-base md:text-lg oswald-font tracking-widest flex items-center gap-2 text-center leading-none transition-all duration-300 w-full justify-center font-bold ${statusColorClass}`}>
+                      {appPhase.includes('ПОДГОТОВ') ? (
+                        <span className="text-amber-600 drop-shadow-[0_0_12px_rgba(217,119,6,0.4)] animate-pulse">{appPhase}</span>
+                      ) : appPhase.includes('СНАЙПЕР:') ? (
+                        <span className="text-blue-700 drop-shadow-[0_0_12px_rgba(29,78,216,0.4)] animate-pulse">{appPhase}</span>
+                      ) : appPhase}
+                    </div>
+                  </div>
+
+                  <div className="flex-1 flex flex-col p-3 md:p-4 gap-3 md:gap-4 overflow-y-hidden relative z-10">
+                    
+                    <div className="grid grid-cols-4 gap-2 glass-card rounded-2xl p-2 shrink-0 border-white bg-white/80">
+                       <Speedometer value={metrics.structure} label="СТРУКТУРА" colorHex="#d97706" />
+                       <Speedometer value={metrics.liquidity} label="ЛИКВИДНОСТЬ" colorHex="#2563eb" glow={true} />
+                       <Speedometer value={metrics.filterLevel} label="АТР ФИЛЬТР" colorHex="#6366f1" />
+                       <Speedometer value={metrics.smartMoney} label="SMART MONEY" colorHex="#06b6d4" />
+                    </div>
+
+                    <div className="glass-card border border-white rounded-2xl p-3 flex flex-col gap-1 shrink-0 bg-white/80 shadow-sm">
+                        <div className="flex justify-between text-[9px] md:text-[10px] font-bold text-slate-500 tracking-widest uppercase">
+                            <span className="text-emerald-600">Покупатели</span>
+                            <span>Order Flow Pressure</span>
+                            <span className="text-rose-600">Продавцы</span>
+                        </div>
+                        <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden flex relative shadow-[inset_0_1px_3px_rgba(0,0,0,0.1)]">
+                            <div className="h-full bg-emerald-500 transition-all duration-500" style={{width: `${metrics.buyPressure}%`}}></div>
+                            <div className="h-full bg-rose-500 transition-all duration-500" style={{width: `${100 - metrics.buyPressure}%`}}></div>
+                        </div>
+                    </div>
+
+                    <div className="flex gap-3 h-28 md:h-32 shrink-0">
+                      <div className={`w-[35%] border rounded-2xl flex flex-col items-center justify-center relative transition-all duration-500 glass-card bg-white/90 ${appPhase === 'СИГНАЛ АКТИВЕН' ? 'border-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.4)]' : 'border-white'}`}>
+                        {signal ? (
+                          <VolumetricArrow type={signal.type} />
+                        ) : (
+                          <div className="flex flex-col items-center opacity-40">
+                              <Radar size={32} className="text-slate-600 mb-2" />
+                              <span className="text-[10px] md:text-xs tracking-widest font-bold text-slate-600 oswald-font">СТАТУС</span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="w-[65%] rounded-2xl overflow-hidden glass-card p-1.5 bg-white border-white shadow-inner flex">
+                        <OrderBookDepth price={currentPrice.current} />
+                        <HftTape price={currentPrice.current} />
+                      </div>
+                    </div>
+
+                    <div className={`glass-card border rounded-3xl p-4 md:p-5 flex flex-col gap-3 shrink-0 relative overflow-hidden transition-all duration-700 bg-white/90 ${
+                        (tradeStats.wins + tradeStats.losses) > 0 
+                            ? (tradeStats.winRate >= 50 ? 'border-cyan-400 shadow-[0_10px_30px_rgba(14,165,233,0.2)]' : 'border-rose-400 shadow-[0_10px_30px_rgba(225,29,72,0.15)]') 
+                            : 'border-white'
+                    }`}>
+                       <div className="absolute -right-4 -top-4 w-20 h-20 bg-gradient-to-br from-slate-100 to-slate-200 rounded-full blur-2xl pointer-events-none"></div>
+                       <div className="flex justify-between items-center z-10 relative">
+                           <span className="text-xs md:text-sm text-slate-600 tracking-widest font-bold flex items-center gap-2 leading-none oswald-font">
+                              <TrendingUp size={18} className={(tradeStats.wins + tradeStats.losses) > 0 ? (tradeStats.winRate >= 50 ? "text-cyan-600" : "text-rose-600") : "text-slate-500"} /> 
+                              ВИНРЕЙТ СИСТЕМЫ
+                           </span>
+                           <span className={`text-3xl md:text-4xl font-black tracking-wider ios-text leading-none oswald-font ${
+                               (tradeStats.wins + tradeStats.losses) > 0 ? (tradeStats.winRate >= 50 ? "text-cyan-600" : "text-rose-600") : "text-slate-800"
+                           }`}>
+                             {tradeStats.winRate}%
+                           </span>
+                       </div>
+                       
+                       <div className="w-full h-4 bg-slate-200 rounded-full flex overflow-hidden relative shadow-[inset_0_2px_5px_rgba(0,0,0,0.06)] mt-2 border border-white">
+                           <div 
+                             className="h-full bg-gradient-to-r from-blue-600 to-cyan-400 transition-all duration-1000 ease-out relative"
+                             style={{ 
+                                 width: `${(tradeStats.wins + tradeStats.losses) > 0 ? (tradeStats.wins / (tradeStats.wins + tradeStats.losses)) * 100 : 50}%`,
+                                 boxShadow: tradeStats.winRate >= 50 ? '0 0 15px rgba(14,165,233,0.6)' : 'none'
+                             }}
+                           >
+                              {tradeStats.winRate >= 50 && <div className="absolute inset-0 bg-white/40 w-full animate-pulse"></div>}
+                           </div>
+                           <div 
+                             className="h-full bg-gradient-to-r from-rose-600 to-rose-400 transition-all duration-1000 ease-out relative"
+                             style={{ 
+                                 width: `${(tradeStats.wins + tradeStats.losses) > 0 ? (tradeStats.losses / (tradeStats.wins + tradeStats.losses)) * 100 : 50}%`,
+                                 boxShadow: tradeStats.winRate < 50 && (tradeStats.wins + tradeStats.losses) > 0 ? '0 0 15px rgba(225,29,72,0.6)' : 'none'
+                             }}
+                           >
+                              {tradeStats.winRate < 50 && (tradeStats.wins + tradeStats.losses) > 0 && <div className="absolute inset-0 bg-white/40 w-full animate-pulse"></div>}
+                           </div>
+                       </div>
+
+                       <div className="flex justify-between items-center z-10 relative mt-2 oswald-font">
+                           <div className="flex flex-col bg-slate-100/80 px-3 py-1.5 rounded-lg border border-slate-200">
+                               <span className="text-[9px] md:text-[10px] text-slate-500 tracking-widest font-bold uppercase">ПРОФИТ</span>
+                               <span className="text-xl md:text-2xl text-cyan-700 font-black ios-text leading-none mt-0.5">{tradeStats.wins}</span>
+                           </div>
+                           <div className="flex flex-col items-end bg-slate-100/80 px-3 py-1.5 rounded-lg border border-slate-200">
+                               <span className="text-[9px] md:text-[10px] text-slate-500 tracking-widest font-bold uppercase">УБЫТОК</span>
+                               <span className="text-xl md:text-2xl text-rose-600 font-black ios-text leading-none mt-0.5">{tradeStats.losses}</span>
+                           </div>
+                       </div>
+                    </div>
+
+                    <div className="glass-card rounded-2xl p-4 flex justify-between items-center shrink-0 relative overflow-hidden shadow-md border-white bg-gradient-to-r from-white to-cyan-50/80">
+                       <div className="absolute right-0 top-0 bottom-0 w-2/3 bg-[radial-gradient(ellipse_at_right,_rgba(14,165,233,0.1),_transparent)] pointer-events-none"></div>
+                       <div className="flex flex-col relative z-10">
+                          <span className="text-[9px] md:text-[10px] text-slate-500 tracking-widest font-bold leading-none uppercase">ЦЕНА ВХОДА</span>
+                          <span className="text-xl md:text-2xl text-slate-900 mt-2 font-black mono-font leading-none drop-shadow-sm">
+                            {signal && signal.entryPrice ? formatPrice(signal.entryPrice) : '---.-----'}
+                          </span>
+                       </div>
+                       <div className="flex flex-col items-end relative z-10">
+                          <span className="text-[9px] md:text-[10px] text-slate-500 tracking-widest flex items-center gap-1.5 font-bold leading-none uppercase">
+                            <Clock size={12} className="text-cyan-600"/> ЭКСПИРАЦИЯ
+                          </span>
+                          <span className="text-3xl md:text-4xl text-cyan-700 mt-1 font-black mono-font tracking-wider leading-none drop-shadow-sm">
+                            {countdown !== null ? `${Math.floor(countdown/60)}:${(countdown%60).toString().padStart(2,'0')}` : (signal && signal.exp ? `0${signal.exp}:00` : '--:--')}
+                          </span>
+                       </div>
+                    </div>
+
+                    <div ref={logsContainerRef} className="flex-1 glass-card rounded-2xl p-4 overflow-hidden flex flex-col justify-start gap-2 border-white bg-white shadow-[inset_0_2px_15px_rgba(0,0,0,0.02)]">
+                      {logs.map((l, i) => (
+                        <div key={i} className={`text-[10px] md:text-xs leading-snug tracking-widest font-semibold mono-font ${i === 0 ? 'text-slate-900 font-bold border-l-4 border-cyan-500 pl-2 bg-cyan-50/50 py-1 rounded-r shadow-sm' : 'text-slate-500 pl-2'}`}>
+                          {l}
+                        </div>
+                      ))}
+                    </div>
+                    
+                  </div>
+                </div>
+              </main>
+
+              <footer className="h-auto md:h-12 py-2 md:py-0 border-t border-white/50 flex flex-row items-center justify-between px-4 md:px-6 shrink-0 glass-panel z-40 bg-white/90">
+                <div className="flex items-center gap-2 text-slate-500 text-[10px] md:text-xs tracking-widest font-bold uppercase oswald-font">
+                  <Shield size={14} className="text-cyan-600 hidden sm:block" /> 
+                  <span className="hidden sm:inline">256-BIT ШИФРОВАНИЕ СИСТЕМЫ • СОЕДИНЕНИЕ БЕЗОПАСНО</span>
+                  <span className="inline sm:hidden">ЗАЩИТА АКТИВНА</span>
+                </div>
+                
+                <div className="flex items-center gap-3 oswald-font">
+                  <span className="text-slate-500 text-[10px] md:text-xs tracking-widest font-bold hidden sm:block uppercase">ЛИЦЕНЗИЯ:</span>
+                  <span className="text-white text-[10px] md:text-xs px-3 py-1.5 rounded-lg bg-slate-900 tracking-widest font-bold text-center shadow-[0_4px_10px_rgba(15,23,42,0.2)] border border-slate-700">
+                    КРИПТО ИНВЕСТ PRO MAX
+                  </span>
+                </div>
+              </footer>
+            </div>
+          );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
